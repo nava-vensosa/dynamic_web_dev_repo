@@ -1,0 +1,15 @@
+# SSH Keys
+id_rsa*
+id_ed25519*
+*.pem
+*.key
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.secret
+
+# Common secret files
+credentials.json
+secrets.json

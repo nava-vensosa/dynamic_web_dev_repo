@@ -13,3 +13,8 @@ id_ed25519*
 # Common secret files
 credentials.json
 secrets.json
+
+# Common dot files
+.DS_Store
+.gitignore
+.claude

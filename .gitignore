@@ -1,4 +1,5 @@
 # SSH Keys
+ssh.txt
 id_rsa*
 id_ed25519*
 *.pem

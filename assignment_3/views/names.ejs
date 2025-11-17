@@ -1,0 +1,28 @@
+<html>
+<head>
+    <title>Names</title>
+</head>
+<body>
+    <h1>Submitted Names</h1>
+
+    <% if (names && names.length > 0) { %>
+        <ul>
+            <% names.forEach(function(name) { %>
+                <li><%= name %></li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>No names have been submitted yet.</p>
+    <% } %>
+
+    <br>
+    <a href="/prompt">
+        <button type="button">Add Another Name</button>
+    </a>
+
+    <br><br>
+    <a href="/">
+        <button type="button">Back to Home</button>
+    </a>
+</body>
+</html>

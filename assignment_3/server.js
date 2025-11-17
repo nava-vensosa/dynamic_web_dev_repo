@@ -39,6 +39,7 @@ app.post('/prompt', (req, res) => {
 
     // write the edited names array to the json file
     fs.writeFileSync('names.json', JSON.stringify(names));
+    // Here's your missing piece!!! You need to redirect the user to a page, or the page will spin forever waiting for a response! so, redirect to the same page if you don't want it to change pages right away
 });
 
 

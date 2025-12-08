@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIBRIL - Dynamic Bayesian Network Harmonizer</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>FIBRIL</h1>
+      <div class="header-controls">
+        <button id="audio-start-btn" class="audio-btn">Start Audio</button>
+      </div>
+    </header>
+
+    <main class="grid-container">
+      <!-- Left Side Ranks -->
+      <section class="left-ranks">
+        <h2>Left Side</h2>
+        <div class="rank-label">Rank 3 - Mediant</div>
+        <div class="rank-grid" data-rank="3"></div>
+        <div class="rank-label">Rank 1 - Tonic</div>
+        <div class="rank-grid" data-rank="1"></div>
+        <div class="rank-label">Rank 6 - Submediant</div>
+        <div class="rank-grid" data-rank="6"></div>
+      </section>
+
+      <!-- Right Side Ranks -->
+      <section class="right-ranks">
+        <h2>Right Side</h2>
+        <div class="rank-label">Rank 5 - Dominant</div>
+        <div class="rank-grid" data-rank="5"></div>
+        <div class="rank-label">Rank 4 - Subdominant</div>
+        <div class="rank-grid" data-rank="4"></div>
+        <div class="rank-label">Rank 2 - Supertonic</div>
+        <div class="rank-grid" data-rank="2"></div>
+      </section>
+
+      <!-- Keyselector (Right) -->
+      <section class="keyselector">
+        <h2>Key Select</h2>
+        <div class="keyselector-grid"></div>
+        <div class="keycenter-display">
+          Key: <span id="current-key">C</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- Drawbars Section -->
+    <section class="drawbars-section">
+      <h2>Drawbars</h2>
+      <div class="drawbars-container">
+        <div class="drawbar" data-index="0">
+          <input type="range" min="0" max="127" value="24" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">24</span>
+          <span class="drawbar-label">HP</span>
+        </div>
+        <div class="drawbar" data-index="1">
+          <input type="range" min="0" max="100" value="1" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">1</span>
+          <span class="drawbar-label">d1</span>
+        </div>
+        <div class="drawbar" data-index="2">
+          <input type="range" min="0" max="100" value="0" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">0</span>
+          <span class="drawbar-label">d2</span>
+        </div>
+        <div class="drawbar" data-index="3">
+          <input type="range" min="0" max="100" value="0" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">0</span>
+          <span class="drawbar-label">d3</span>
+        </div>
+        <div class="drawbar" data-index="4">
+          <input type="range" min="0" max="100" value="0" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">0</span>
+          <span class="drawbar-label">d4</span>
+        </div>
+        <div class="drawbar" data-index="5">
+          <input type="range" min="0" max="100" value="1" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">1</span>
+          <span class="drawbar-label">d5</span>
+        </div>
+        <div class="drawbar" data-index="6">
+          <input type="range" min="0" max="100" value="0" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">0</span>
+          <span class="drawbar-label">d6</span>
+        </div>
+        <div class="drawbar" data-index="7">
+          <input type="range" min="0" max="100" value="0" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">0</span>
+          <span class="drawbar-label">d7</span>
+        </div>
+        <div class="drawbar" data-index="8">
+          <input type="range" min="0" max="127" value="96" orient="vertical" class="drawbar-slider">
+          <span class="drawbar-value">96</span>
+          <span class="drawbar-label">LP</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Heuristics Section -->
+    <section class="heuristics-section">
+      <h2>Heuristics</h2>
+      <div class="heuristics-container">
+        <div class="heuristic" data-param="vl">
+          <label>Voice Leading</label>
+          <input type="range" min="0" max="100" value="50" class="heuristic-slider">
+          <span class="heuristic-value">0.50</span>
+        </div>
+        <div class="heuristic" data-param="crawl">
+          <label>Crawl</label>
+          <input type="range" min="0" max="67" value="50" class="heuristic-slider">
+          <span class="heuristic-value">0.50</span>
+        </div>
+        <div class="heuristic" data-param="harmonicity">
+          <label>Harmonicity</label>
+          <input type="range" min="0" max="100" value="50" class="heuristic-slider">
+          <span class="heuristic-value">0.50</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls (Bottom) -->
+    <footer class="controls">
+      <button id="sustain-btn" class="control-btn sustain">
+        SUSTAIN<br><small>[Space]</small>
+      </button>
+      <button id="rl-flip-btn" class="control-btn rl-flip">
+        RL FLIP<br><small>[Backspace]</small>
+      </button>
+    </footer>
+
+    <!-- Debug: Current voicemap -->
+    <div id="voicemap-display">
+      <h3>Voicemap Output</h3>
+      <pre id="voicemap-output">[]</pre>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

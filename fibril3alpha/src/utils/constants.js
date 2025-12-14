@@ -37,7 +37,7 @@ export const DRAWBAR_RANGE = {
 };
 
 // Default drawbar state [highpass, d1-d7, lowpass]
-export const DEFAULT_DRAWBAR_STATE = [24, 1, 0, 0, 0, 1, 0, 0, 96];
+export const DEFAULT_DRAWBAR_STATE = [36, 74, 0, 23, 16, 62, 12, 18, 86];
 
 // Default keycenter (middle C)
 export const DEFAULT_KEYCENTER = 60;

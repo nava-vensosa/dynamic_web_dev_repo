@@ -520,14 +520,24 @@ class DBN {
   constructor() {
     this.lastOutput = [];
     this.onOutput = null;
+    this.onProbabilityVector = null;  // Callback for treemap visualization
+    this.iterationData = [];          // Store all iterations for current run
   }
 
   setOutputCallback(callback) {
     this.onOutput = callback;
   }
 
+  setProbabilityVectorCallback(callback) {
+    this.onProbabilityVector = callback;
+  }
+
   runAlgorithm(state) {
     const { voicemap, ranks, drawbars, priority_order, crawl } = state;
+
+    // Reset iteration data for this run
+    this.iterationData = [];
+    let iteration = 0;
 
     // Step 1: Calculate quota
     voicemap.get_quota(ranks, crawl, priority_order);
@@ -537,6 +547,10 @@ class DBN {
       voicemap.next = [];
       this.lastOutput = [];
       if (this.onOutput) this.onOutput(this.lastOutput);
+      // Clear treemaps when no notes
+      if (this.onProbabilityVector) {
+        this.onProbabilityVector([]);
+      }
       voicemap.cleanup();
       state.prepareRanksForNextRun();
       return this.lastOutput;
@@ -552,6 +566,7 @@ class DBN {
 
     // Step 4: Main loop
     while (voicemap.hasMoreQuota()) {
+      iteration++;
       const rankId = voicemap.processQueueStep();
       if (rankId === null) break;
 
@@ -573,6 +588,14 @@ class DBN {
 
       const maskedVector = applyMask(combinedVector, projectionMask);
 
+      // Capture probability vector for treemap visualization
+      this.iterationData.push({
+        iteration: iteration,
+        rankId: rankId,
+        probabilityVector: [...maskedVector],
+        keycenter: state.keycenter
+      });
+
       // Duplicate detection
       const MAX_RESAMPLE_ATTEMPTS = state.sustain ? 1 : 3;
       let selectedNote = sampleFromDistribution(maskedVector);
@@ -587,7 +610,12 @@ class DBN {
       targetRank.voices_owned_next.push(selectedNote);
     }
 
-    // Step 5: Finalize
+    // Step 5: Emit probability vectors for treemap visualization
+    if (this.onProbabilityVector && this.iterationData.length > 0) {
+      this.onProbabilityVector([...this.iterationData]);
+    }
+
+    // Step 6: Finalize
     this.lastOutput = [...voicemap.next];
     if (this.onOutput) this.onOutput(this.lastOutput);
     voicemap.cleanup();

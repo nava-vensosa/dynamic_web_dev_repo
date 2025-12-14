@@ -6,6 +6,8 @@
   <title>FIBRIL - Dynamic Bayesian Network Harmonizer</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.3.0/dist/chartjs-chart-treemap.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -138,9 +140,18 @@
       <h3>Voicemap Output</h3>
       <pre id="voicemap-output">[]</pre>
     </div>
+
+    <!-- Treemap Visualization Section -->
+    <section id="treemap-section">
+      <h2>Probability Distribution</h2>
+      <div id="treemap-container" class="treemap-grid">
+        <!-- Treemaps will be dynamically inserted here -->
+      </div>
+    </section>
   </div>
 
   <script src="fibril-core.js"></script>
+  <script src="treemap.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

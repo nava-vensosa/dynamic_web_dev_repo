@@ -1,0 +1,23 @@
+{
+  "name": "fibril",
+  "version": "1.0.0",
+  "description": "Dynamic Bayesian Network-based music harmonizer",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "demo": "node src/index.js"
+  },
+  "keywords": [
+    "music",
+    "harmonizer",
+    "dbn",
+    "midi"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

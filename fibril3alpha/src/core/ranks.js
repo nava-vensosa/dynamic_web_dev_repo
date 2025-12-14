@@ -163,20 +163,31 @@ export class Rank {
 
   /**
    * Calculate active octave bands based on state_next
-   * Each bit represents 25% of the highpass-lowpass range
+   * Each bit represents an overlapping portion of the highpass-lowpass range:
+   *   Byte 0 (LSB): 0%-35%
+   *   Byte 1: 18.75%-56.25%
+   *   Byte 2: 43.75%-81.25%
+   *   Byte 3 (MSB): 65%-100%
    * @param {number} highpass - Lower MIDI bound
    * @param {number} lowpass - Upper MIDI bound
    * @returns {Array<{min: number, max: number}>} Array of active bands
    */
   get_bands(highpass, lowpass) {
     const range = lowpass - highpass;
-    const bandSize = range / RANK_BUTTONS;
     const bands = [];
+
+    // Overlapping band definitions as fractions of range
+    const bandDefs = [
+      { start: 0.0,    end: 0.35   },  // Byte 0 (LSB): 0%-35%
+      { start: 0.1875, end: 0.5625 },  // Byte 1: 18.75%-56.25%
+      { start: 0.4375, end: 0.8125 },  // Byte 2: 43.75%-81.25%
+      { start: 0.65,   end: 1.0    }   // Byte 3 (MSB): 65%-100%
+    ];
 
     for (let i = 0; i < RANK_BUTTONS; i++) {
       if (this.state_next[i] === 1) {
-        const min = Math.floor(highpass + i * bandSize);
-        const max = Math.floor(highpass + (i + 1) * bandSize);
+        const min = Math.floor(highpass + bandDefs[i].start * range);
+        const max = Math.floor(highpass + bandDefs[i].end * range);
         bands.push({ min, max });
       }
     }

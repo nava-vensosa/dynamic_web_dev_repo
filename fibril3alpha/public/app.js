@@ -2,14 +2,53 @@
 // All state engine processing runs locally in the browser
 
 // =============================================
+// OSC Bridge (WebSocket to Server for Max MSP)
+// =============================================
+
+const OSCBridge = {
+  ws: null,
+  isConnected: false,
+
+  init() {
+    const wsUrl = `ws://${window.location.host}`;
+    this.ws = new WebSocket(wsUrl);
+
+    this.ws.onopen = () => {
+      this.isConnected = true;
+      console.log('OSC bridge connected');
+    };
+
+    this.ws.onclose = () => {
+      this.isConnected = false;
+      console.log('OSC bridge disconnected');
+      // Reconnect after 2 seconds
+      setTimeout(() => this.init(), 2000);
+    };
+
+    this.ws.onerror = (err) => {
+      console.error('OSC bridge error:', err);
+    };
+  },
+
+  sendVoicemap(notes) {
+    if (this.isConnected && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'voicemap',
+        notes: notes
+      }));
+    }
+  }
+};
+
+// =============================================
 // Audio Engine (Tone.js)
 // =============================================
 
 const AudioEngine = {
   isStarted: false,
-  oscillators: [],
+  oscillatorMap: new Map(),  // Map<midi, {osc, panner}> - track oscillators by MIDI note
   lastVoicemap: [],
-  rampTime: 0.012,      // 12ms ramp time
+  rampTime: 0.018,      // 18ms ramp time (increased from 12ms to fix audio popping)
 
   midiToFreq(midi) {
     return 440 * Math.pow(2, (midi - 69) / 12);
@@ -27,32 +66,45 @@ const AudioEngine = {
 
     const now = Tone.now();
 
-    // Ramp down old oscillators
-    for (const osc of this.oscillators) {
-      osc.volume.rampTo(-Infinity, this.rampTime, now);
-      setTimeout(() => {
-        osc.stop();
-        osc.dispose();
-      }, this.rampTime * 1000 + 10);
+    const lastSet = new Set(this.lastVoicemap);
+    const newSet = new Set(newVoicemap);
+
+    // Notes to remove (in last but not in new) - ramp down and dispose
+    for (const midi of this.lastVoicemap) {
+      if (!newSet.has(midi) || !this.lastVoicemap.has(midi)) {
+        const entry = this.oscillatorMap.get(midi);
+        if (entry) {
+          entry.osc.volume.rampTo(-Infinity, this.rampTime, now);
+          setTimeout(() => {
+            entry.osc.stop();
+            entry.osc.dispose();
+            entry.panner.dispose();
+          }, this.rampTime * 1000 + 10);
+          this.oscillatorMap.delete(midi);
+        }
+      }
     }
+    // Notes that exist in both (sustained) - do nothing, keep playing
 
-    this.oscillators = [];
+    // Notes to add (in new but not in last) - create and ramp up
+    let panIndex = this.oscillatorMap.size;
+    for (const midi of newVoicemap) {
+      if (!lastSet.has(midi)) {
+        const freq = this.midiToFreq(midi);
+        const pan = ((panIndex + 1) % 2 === 0) ? 1 : -1;
 
-    for (let i = 0; i < newVoicemap.length; i++) {
-      const midi = newVoicemap[i];
-      const freq = this.midiToFreq(midi);
-      const pan = (i % 2 === 0) ? 1 : -1;
+        const panner = new Tone.Panner(pan).toDestination();
+        const osc = new Tone.Oscillator({
+          frequency: freq,
+          type: 'sine',
+          volume: -Infinity
+        }).connect(panner);
 
-      const panner = new Tone.Panner(pan).toDestination();
-      const osc = new Tone.Oscillator({
-        frequency: freq,
-        type: 'sine',
-        volume: -Infinity
-      }).connect(panner);
-
-      osc.start(now);
-      osc.volume.rampTo(-12, this.rampTime, now);
-      this.oscillators.push(osc);
+        osc.start(now);
+        osc.volume.rampTo(-12, this.rampTime, now);
+        this.oscillatorMap.set(midi, { osc, panner });
+        panIndex++;
+      }
     }
 
     this.lastVoicemap = [...newVoicemap];
@@ -60,14 +112,15 @@ const AudioEngine = {
 
   stop() {
     const now = Tone.now();
-    for (const osc of this.oscillators) {
-      osc.volume.rampTo(-Infinity, this.rampTime, now);
+    for (const [midi, entry] of this.oscillatorMap) {
+      entry.osc.volume.rampTo(-Infinity, this.rampTime, now);
       setTimeout(() => {
-        osc.stop();
-        osc.dispose();
+        entry.osc.stop();
+        entry.osc.dispose();
+        entry.panner.dispose();
       }, this.rampTime * 1000 + 10);
     }
-    this.oscillators = [];
+    this.oscillatorMap.clear();
     this.lastVoicemap = [];
   }
 };
@@ -140,10 +193,16 @@ function init() {
   // Initialize FibrilEngine (client-side state processing)
   FibrilEngine.initialize();
 
+  // Initialize OSC bridge for Max MSP
+  OSCBridge.init();
+
   // Set callback for voicemap changes
   FibrilEngine.onVoicemapChange = (voicemap) => {
     // Update audio engine
     AudioEngine.updateVoicemap(voicemap);
+
+    // Send to Max MSP via OSC
+    OSCBridge.sendVoicemap(voicemap);
 
     // Update display
     const formatted = voicemap.map(midi => {
@@ -153,6 +212,14 @@ function init() {
     document.getElementById('voicemap-output').textContent =
       formatted.length > 0 ? formatted.join(', ') : '[]';
   };
+
+  // Initialize treemap visualizer
+  TreemapVisualizer.init();
+
+  // Set callback for probability vector visualization
+  FibrilEngine.dbn.setProbabilityVectorCallback((iterationData) => {
+    TreemapVisualizer.render(iterationData);
+  });
 
   // Initialize UI
   buildKeyToRankMap();

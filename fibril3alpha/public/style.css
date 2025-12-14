@@ -433,3 +433,68 @@ h2 {
     gap: 20px;
   }
 }
+
+/* Treemap Section */
+#treemap-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: var(--panel);
+  border-radius: 8px;
+}
+
+#treemap-section h2 {
+  margin-bottom: 15px;
+  color: var(--accent);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.treemap-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: flex-start;
+}
+
+.treemap-wrapper {
+  flex: 0 0 calc(33.333% - 10px);
+  max-width: calc(33.333% - 10px);
+  min-width: 200px;
+  aspect-ratio: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.treemap-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Treemap empty state */
+.treemap-grid:empty::after {
+  content: 'Press rank buttons to see probability distributions';
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+/* Responsive treemap layout */
+@media (max-width: 900px) {
+  .treemap-wrapper {
+    flex: 0 0 calc(50% - 7.5px);
+    max-width: calc(50% - 7.5px);
+  }
+}
+
+@media (max-width: 600px) {
+  .treemap-wrapper {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
